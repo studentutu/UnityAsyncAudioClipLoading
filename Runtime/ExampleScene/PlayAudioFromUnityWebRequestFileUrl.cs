@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -12,12 +13,33 @@ namespace WebRequestAudio.ExampleScene
 		[SerializeField] private AudioSource _audioSource;
 		[SerializeField] private AudioType _audioType;
 		[SerializeField] private bool _enableStreaming = false;
+		[SerializeField] private bool _useEditorFile = false;
+		[SerializeField] private UnityEngine.Object _anyFile;
 
 		private System.Action _disposer;
 
 		private void OnEnable()
 		{
 			_button.onClick.AddListener(OnButtonClick);
+		}
+
+		private string GetUrlFromLocalPath()
+		{
+			string resultUrl = null;
+			if (_anyFile == null)
+			{
+				return null;
+			}
+#if UNITY_EDITOR
+			var findFromAssetDatabase = UnityEditor.AssetDatabase.GetAssetPath(_anyFile);
+			var projectpath = Application.dataPath;
+			var projectPathWitoutAsset = projectpath.Substring(0, projectpath.Length - "Assets".Length);
+			var uri = new System.Uri("file:///");
+			uri = new Uri(uri, projectPathWitoutAsset);
+			uri = new Uri(uri, findFromAssetDatabase);
+			resultUrl = uri.ToString();
+#endif
+			return resultUrl;
 		}
 
 		private void OnDisable()
@@ -53,10 +75,18 @@ namespace WebRequestAudio.ExampleScene
 
 				requestWithAudio.Dispose();
 			};
+
+			var uri = _urlToLoadFile;
+
+			if (_useEditorFile)
+			{
+				uri = GetUrlFromLocalPath();
+			}
+
 			var requestTask = AudioFromWebRequest
 				.LoadAudioFrom(
 					_audioSource,
-					_urlToLoadFile,
+					uri,
 					null,
 					_audioType,
 					_enableStreaming,
