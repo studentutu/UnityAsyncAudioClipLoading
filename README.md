@@ -1,5 +1,5 @@
 # Loading async Audio clip or streaming audio clip
-
+[![License][License-Badge]][License]
 
 > **Requires** Unity Editor 2017.4 +
 
